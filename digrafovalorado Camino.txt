@@ -1,0 +1,2 @@
+template <typename Valor>
+using Camino = std::deque<AristaDirigida<Valor>>;   // para representar caminos

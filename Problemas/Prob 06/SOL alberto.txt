@@ -1,0 +1,48 @@
+Varios estáis teniendo dificultades con este problema. La idea de la solución es sencilla si se piensa bien. Aquí una cola de prioridad nos viene bien para saber cuál es la siguiente tarea que me toca hacer. Por eso la cola de prioridad es de tareas (para las tareas periódicas tenemos en la cola la siguiente aparición de esa tarea), y la prioridad es el inicio de la tarea (una tarea es más prioritaria que otra si tiene un comienzo anterior):
+
+struct Tarea {
+  bool repite; // si es periódica o no
+  int ini, fin, intervalo;
+};
+
+// cuándo b tiene que salir antes
+bool operator<(Tarea const& a, Tarea const& b) {
+  return a.ini > b.ini;
+}
+Después de rellenar la cola de prioridad con toda la información de las tareas, comienza un bucle para averiguar si hay conflictos o no. Utilizamos una variable ocupado que nos dice hasta cuándo estamos ocupados. Si la siguiente tarea comienza antes de ese momento, entonces hay conflicto. Esto se repite mientras la cola siga teniendo tareas y el comienzo de la siguiente sea anterior a T, porque solamente estamos interesados en si hay conflicto o no en el periodo [0..T). Con estas ideas el código es el siguiente:
+
+bool resuelve() {
+  int N, M, T;
+  cin >> N >> M >> T;
+  if (!cin)
+    return false;
+  
+  priority_queue<tarea> cola;
+  // rellenamos la cola con al información de las tareas
+  int ini, fin, interv;
+  for (int i = 0; i < N; ++i) { // tareas no periódicas
+    cin >> ini >> fin;
+    cola.push({false, ini, fin, 0});
+  }
+  for (int i = 0; i < M; ++i) { // tareas periódicas
+    cin >> ini >> fin >> interv;
+    cola.push({true, ini, fin, interv});
+  }
+  
+  bool conflicto = false;
+  int ocupado = 0; // hasta cuándo estoy ocupado con las tareas procesadas
+  while (!conflicto && !cola.empty() && cola.top().ini < T) {
+    auto [rep, ini, fin, inter] = cola.top(); cola.pop();
+    conflicto = ini < ocupado;
+    ocupado = fin;
+    if (rep) { // añadimos a la cola la nueva aparición de la tarea periódica
+      cola.push({true, ini + inter, fin + inter, inter});
+    }
+  }
+  if (conflicto)
+    cout << "SI\n";
+  else
+    cout << "NO\n";
+  
+  return true;
+}
